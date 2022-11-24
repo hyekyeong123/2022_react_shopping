@@ -7,6 +7,8 @@ import {
   onAuthStateChanged,
 } from 'firebase/auth';
 
+import { getDatabase, ref, child, get } from "firebase/database";
+
 // https://firebase.google.com/docs/auth/web/google-signin?hl=ko&authuser=0
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -22,10 +24,11 @@ document.cookie = "crossCookie=bar; SameSite=None; Secure";
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const provider = new GoogleAuthProvider();
+const database = getDatabase(app); // 데이터 베이스 초기화
+
 
 export function login() {
   signInWithPopup(auth, provider)
-  .then(console.log("로그인 성공"))
   .catch(console.error);
 }
 
@@ -37,7 +40,26 @@ export function logout() {
 // Set an authentication state observer and get user data
 // 전역 관찰자 연결 - 로그인 상태가 변결될때마다 호출
 export function onUserStateChange(callback) {
-  onAuthStateChanged(auth, (user) => {
-    callback(user)
+  onAuthStateChanged(auth, async (user) => {
+    // console.log("[JHG] user : "+JSON.stringify(user));
+    const updatedUser = user ? await adminUser(user) : null;
+    callback(updatedUser)
+  });
+}
+
+async function adminUser(user){
+
+  // 사용자가 어드민 권한을 가지고 있는지 확인
+  const dbRef = ref(getDatabase());
+  return get(child(dbRef, 'admins'))
+  .then((snapshot) => {
+    if (snapshot.exists()) {
+      const admins = snapshot.val();
+      const isAdmin = admins.includes(user.uid);
+      return {...user, isAdmin}
+    }
+    return user;
+  }).catch((error) => {
+    console.error(error);
   });
 }
