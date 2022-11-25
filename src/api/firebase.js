@@ -7,8 +7,8 @@ import {
   onAuthStateChanged,
 } from 'firebase/auth';
 
-import { getDatabase, ref, child, get } from "firebase/database";
-
+import { getDatabase, ref, child, get, set } from "firebase/database";
+import {v4 as uuid} from 'uuid';
 // https://firebase.google.com/docs/auth/web/google-signin?hl=ko&authuser=0
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -47,9 +47,10 @@ export function onUserStateChange(callback) {
   });
 }
 
+// 사용자가 어드민 권한을 가지고 있는지 확인
 async function adminUser(user){
 
-  // 사용자가 어드민 권한을 가지고 있는지 확인
+  // 파이버베이스 DB에서 admins 가져오기
   const dbRef = ref(getDatabase());
   return get(child(dbRef, 'admins'))
   .then((snapshot) => {
@@ -59,6 +60,32 @@ async function adminUser(user){
       return {...user, isAdmin}
     }
     return user;
+  }).catch((error) => {
+    console.error(error);
+  });
+}
+
+// 파이어베이스에 제품 추가
+export async function addNewProduct(product, imageUrl){
+  const id = uuid();
+  return set(
+    ref(database, `products/${id}`),{
+      ...product,
+      id,
+      price:parseInt(product.price),
+      image:imageUrl,
+      options:product.options.split(',')
+    }
+  )
+}
+
+// 파이어베이스에서 제품 가져오기
+export async function getProducts(){
+  return get(ref(database, 'products'))
+  .then((snapshot) => {
+    if (snapshot.exists()) {
+      return Object.values(snapshot.val());
+    }else return [];
   }).catch((error) => {
     console.error(error);
   });

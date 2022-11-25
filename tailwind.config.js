@@ -6,6 +6,11 @@ module.exports = {
       colors: {
         brand: '#F96162',
       },
+
+      // bg-banner로 사용
+      backgroundImage:{
+        banner:`url('../public/images/banner.jpg')`,
+      }
     },
   },
   plugins: [],

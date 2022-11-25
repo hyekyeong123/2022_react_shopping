@@ -9,6 +9,7 @@ import ProductDetail from './pages/ProductDetail';
 import NewProduct from './pages/NewProduct';
 import MyCart from './pages/MyCart';
 import NotFound from './pages/NotFound';
+import ProtectedRoute from "./pages/ProtectedRoute";
 
 const router = createBrowserRouter([
   {
@@ -19,6 +20,7 @@ const router = createBrowserRouter([
       { index: true, path: '/', element: <Home /> },
       { path: '/products', element: <AllProducts /> },
       {
+        // 관리자만
         path: '/products/new',
         element: (
           <ProtectedRoute requireAdmin>
@@ -31,6 +33,7 @@ const router = createBrowserRouter([
         element: <ProductDetail />,
       },
       {
+        // 로그인 한 사용자만
         path: '/carts',
         element: (
           <ProtectedRoute>
