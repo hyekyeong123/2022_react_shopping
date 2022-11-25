@@ -7,7 +7,7 @@ import {
   onAuthStateChanged,
 } from 'firebase/auth';
 
-import { getDatabase, ref, child, get, set } from "firebase/database";
+import { getDatabase, ref, child, get, set, remove } from "firebase/database";
 import {v4 as uuid} from 'uuid';
 // https://firebase.google.com/docs/auth/web/google-signin?hl=ko&authuser=0
 const firebaseConfig = {
@@ -26,7 +26,7 @@ const auth = getAuth();
 const provider = new GoogleAuthProvider();
 const database = getDatabase(app); // 데이터 베이스 초기화
 
-
+// region **************************** 사용자 관련 ****************************
 export function login() {
   signInWithPopup(auth, provider)
   .catch(console.error);
@@ -64,7 +64,10 @@ async function adminUser(user){
     console.error(error);
   });
 }
+// endregion **************************** 사용자 관련 ****************************
 
+
+// region **************************** 상품 관련 ****************************
 // 파이어베이스에 제품 추가
 export async function addNewProduct(product, imageUrl){
   const id = uuid();
@@ -90,3 +93,28 @@ export async function getProducts(){
     console.error(error);
   });
 }
+// endregion **************************** 상품 관련 ****************************
+
+
+// region **************************** 장바구니 관련 ****************************
+export async function getCart(userId){
+  return get(ref(database, `carts/${userId}`))
+  .then((snapshot) => {
+    if (snapshot.exists()) {
+      const items = snapshot.val() || {};
+      return Object.values(items);
+    }
+    else return [];
+  }).catch((error) => {
+    console.error(error);
+  });
+}
+
+export async function addOrUpdateToCart(userId, product){
+  return set(ref(database, `carts/${userId}/${product.id}`), product)
+}
+
+export async function deleteFromCart(userId, productId){
+  return remove(ref(database, `carts/${userId}/${productId}`))
+}
+// endregion **************************** 장바구니 관련 ****************************
