@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import Button from "../components/ui/Button";
 import {uploadImage} from "../api/uploader";
-import {addNewProduct} from "../api/firebase";
+import useProduct from "../hooks/useProduct";
 
 export default function NewProduct() {
   const [product, setProduct] = useState({});
@@ -9,6 +9,16 @@ export default function NewProduct() {
 
   const [isUploading, setIsUploading] = useState(false);
   const [success, setSuccess] = useState(null);
+
+  // V2. useMutation 사용하기(상품 추가)
+  // const queryClient = useQueryClient();
+  // const addProduct = useMutation(({product, url}) =>
+  //   addNewProduct(product,url),{
+  //   onSuccess: ()=>queryClient.invalidateQueries(["products"])
+  // })
+
+  // V3. useMutation Hook 사용하기
+  const {addProduct} = useProduct()
 // ************************************************************
 
   // 파일 업로드 할 시
@@ -33,15 +43,23 @@ export default function NewProduct() {
 
     // 제품의 사진을 Cloudinary에 업로드 하고 URL을 획득
     uploadImage(file).then(url => {
-      // Firebase에 새로운 제품 추가
-      addNewProduct(product, url)
-      .then(() => {
-        setSuccess("성공적으로 제품이 추가되었습니다.");
-        setTimeout(()=>{
-          setSuccess(null);
-        },4000)
-      });
-      console.log("성공");
+
+      // V1. Firebase에 새로운 제품 추가
+      // addNewProduct(product, url)
+      // .then(() => {
+      //   setSuccess("성공적으로 제품이 추가되었습니다.");
+      //   setTimeout(()=>{
+      //     setSuccess(null);
+      //   },4000)
+      // });
+
+      // V2. Firebase에 새로운 제품 추가
+      addProduct.mutate({product,  url}, {onSuccess : () => {
+          setSuccess("성공적으로 제품이 추가되었습니다.");
+          setTimeout(()=>{
+            setSuccess(null);
+          },4000)
+      }})
     }).finally(()=>{
       setIsUploading(false);
     })

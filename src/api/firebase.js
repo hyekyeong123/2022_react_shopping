@@ -68,6 +68,7 @@ async function adminUser(user){
 
 
 // region **************************** 상품 관련 ****************************
+
 // 파이어베이스에 제품 추가
 export async function addNewProduct(product, imageUrl){
   const id = uuid();
